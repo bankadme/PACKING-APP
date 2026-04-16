@@ -290,7 +290,7 @@ function loadSaved(){
 
 function updateTopbar(s){
   if(!s)return;
-  const emps=[s.emp1,s.emp2,s.emp3].filter(Boolean).join(', ');
+  const emps=[s.emp1,s.emp2,s.emp3].filter(Boolean).join('/');
   document.getElementById('topbar-sub').textContent='โต๊ะ '+s.table+' · '+emps;
 }
 
@@ -305,7 +305,7 @@ function saveMorning(){
   };
   try{localStorage.setItem('nisto_team',JSON.stringify(s));}catch(e){}
   updateTopbar(s);
-  const emps=[s.emp1,s.emp2,s.emp3].filter(Boolean).join(', ');
+  const emps=[s.emp1,s.emp2,s.emp3].filter(Boolean).join('/');
   document.getElementById('team-display').textContent='โต๊ะ '+s.table+' · '+emps;
   goPage('page-ready');
 }
