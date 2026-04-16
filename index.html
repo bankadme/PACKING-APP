@@ -305,7 +305,13 @@ function getTeam(){
 }
 
 function fmtTime(d){
-  return pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
+  const day = pad(d.getDate());
+  const mon = pad(d.getMonth()+1);
+  const yr  = d.getFullYear();
+  const hh  = pad(d.getHours());
+  const mm  = pad(d.getMinutes());
+  const ss  = pad(d.getSeconds());
+  return day+'/'+mon+'/'+yr+' '+hh+':'+mm+':'+ss;
 }
 
 function sendToSheet(payload, onSuccess, onError){
