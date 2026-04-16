@@ -312,20 +312,9 @@ function sendToSheet(payload, onSuccess, onError){
   try{
     const encoded = encodeURIComponent(JSON.stringify(payload));
     const url = SCRIPT_URL + '?data=' + encoded;
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
-    xhr.onload = function(){
-      try{
-        const res = JSON.parse(xhr.responseText);
-        if(res.ok) onSuccess(res); else onError(res.error||'error');
-      }catch(e){ onSuccess({ok:true}); }
-    };
-    xhr.onerror = function(){
-      const img = new Image();
-      img.src = url + '&t=' + Date.now();
-      setTimeout(()=>onSuccess({ok:true}), 2000);
-    };
-    xhr.send();
+    fetch(url, {method:'GET', redirect:'follow', mode:'no-cors'})
+      .then(()=>onSuccess({ok:true}))
+      .catch(err=>onError(err.toString()));
   }catch(err){ onError(err.toString()); }
 }
 
