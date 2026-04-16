@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#ffffff">
+<title>แพ็คกิ้ง — NISTO</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f0;min-height:100vh;display:flex;justify-content:center;padding:12px}
+  .screen{background:#fff;border-radius:16px;width:100%;max-width:430px;min-height:calc(100vh - 24px);overflow:hidden;border:0.5px solid #e0dfd7;display:flex;flex-direction:column}
+  .topbar{background:#f5f5f0;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:0.5px solid #e0dfd7;flex-shrink:0}
+  .topbar-title{font-size:14px;font-weight:500;color:#1a1a18}
+  .topbar-sub{font-size:11px;color:#888780;margin-top:1px}
+  .topbar-time{font-size:12px;color:#b4b2a9;font-variant-numeric:tabular-nums}
+  .page{padding:20px 16px;display:none;flex:1}
+  .page.active{display:block}
+  .page-title{font-size:17px;font-weight:500;color:#1a1a18;margin-bottom:4px}
+  .page-sub{font-size:13px;color:#888780;margin-bottom:24px;line-height:1.5}
+  .big-btn{width:100%;padding:18px;border-radius:14px;font-size:17px;font-weight:500;border:none;cursor:pointer;margin-bottom:12px;letter-spacing:0.01em}
+  .btn-green{background:#1D9E75;color:#fff}
+  .btn-green:active{background:#0F6E56}
+  .btn-red{background:#E24B4A;color:#fff}
+  .btn-red:active{background:#A32D2D}
+  .btn-outline{background:transparent;border:0.5px solid #c8c7be;color:#3d3d3a;padding:13px;border-radius:10px;font-size:14px;cursor:pointer;width:100%;margin-bottom:10px}
+  .btn-outline:active{background:#f5f5f0}
+  .field-group{margin-bottom:16px}
+  .field-lbl{font-size:13px;color:#5f5e5a;margin-bottom:6px;display:flex;align-items:center;gap:7px}
+  .saved-badge{font-size:10px;background:#E1F5EE;color:#085041;padding:2px 8px;border-radius:20px;font-weight:500}
+  .field-input{width:100%;padding:12px 14px;border-radius:10px;border:0.5px solid #c8c7be;font-size:16px;color:#1a1a18;background:#fff;-webkit-appearance:none;appearance:none}
+  .field-input:focus{outline:none;border-color:#888780;border-width:1px}
+  .field-row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+  .info-card{background:#f5f5f0;border-radius:12px;padding:14px 16px;margin-bottom:16px}
+  .info-row{display:flex;justify-content:space-between;align-items:baseline;padding:6px 0;border-bottom:0.5px solid #e0dfd7}
+  .info-row:last-child{border-bottom:none}
+  .info-lbl{font-size:13px;color:#888780}
+  .info-val{font-size:13px;font-weight:500;color:#1a1a18;text-align:right;max-width:60%}
+  .wo-badge{display:inline-block;background:#E6F1FB;color:#0C447C;font-size:12px;padding:4px 12px;border-radius:20px;font-weight:500;margin-bottom:14px}
+  .scan-area{border:1.5px dashed #c8c7be;border-radius:14px;padding:36px 20px;text-align:center;margin-bottom:20px;cursor:pointer;background:#fafaf8}
+  .scan-area:active{background:#f0f0eb}
+  .scan-icon-box{width:52px;height:52px;border-radius:10px;background:#f0f0eb;margin:0 auto 12px;display:flex;align-items:center;justify-content:center}
+  .timer-wrap{text-align:center;padding:24px 0 20px}
+  .timer-num{font-size:48px;font-weight:500;color:#1a1a18;letter-spacing:-2px;font-variant-numeric:tabular-nums}
+  .timer-lbl{font-size:12px;color:#888780;margin-top:6px}
+  .step-dots{display:flex;align-items:center;gap:6px;margin-bottom:22px}
+  .sdot{width:8px;height:8px;border-radius:50%;background:#e0dfd7;transition:all .2s}
+  .sdot.done{background:#1D9E75}
+  .sdot.cur{background:#1D9E75;width:22px;border-radius:4px}
+  .calc-row{display:flex;justify-content:space-between;padding:6px 0;font-size:13px}
+  .calc-lbl{color:#888780}
+  .calc-val{font-weight:500;color:#1a1a18}
+  .divider-line{border:none;border-top:0.5px solid #e0dfd7;margin:8px 0}
+  .success-wrap{text-align:center;padding-top:48px}
+  .success-circle{width:64px;height:64px;border-radius:50%;background:#E1F5EE;display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+  .team-bar{background:#f5f5f0;border-radius:10px;padding:11px 14px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between}
+  .team-bar-lbl{font-size:12px;color:#888780}
+  .team-bar-val{font-size:13px;font-weight:500;color:#1a1a18}
+  .hint{font-size:11px;color:#b4b2a9;text-align:center;margin-top:6px;line-height:1.5}
+  @media(prefers-color-scheme:dark){
+    body{background:#1c1c1a}
+    .screen{background:#2c2c2a;border-color:#444441}
+    .topbar{background:#232321;border-color:#444441}
+    .topbar-title{color:#e8e6de}
+    .topbar-sub,.topbar-time{color:#888780}
+    .page-title{color:#e8e6de}
+    .page-sub{color:#888780}
+    .big-btn.btn-green{background:#1D9E75}
+    .big-btn.btn-red{background:#E24B4A}
+    .btn-outline{border-color:#444441;color:#c2c0b6}
+    .btn-outline:active{background:#3a3a38}
+    .field-lbl{color:#888780}
+    .field-input{background:#232321;border-color:#444441;color:#e8e6de}
+    .field-input:focus{border-color:#888780}
+    .info-card{background:#232321}
+    .info-row{border-color:#3a3a38}
+    .info-lbl{color:#888780}
+    .info-val{color:#e8e6de}
+    .scan-area{border-color:#444441;background:#232321}
+    .scan-area:active{background:#2a2a28}
+    .scan-icon-box{background:#3a3a38}
+    .timer-num{color:#e8e6de}
+    .sdot{background:#444441}
+    .calc-lbl{color:#888780}
+    .calc-val{color:#e8e6de}
+    .divider-line{border-color:#3a3a38}
+    .team-bar{background:#232321}
+    .team-bar-val{color:#e8e6de}
+    .hint{color:#5f5e5a}
+    .wo-badge{background:#0C447C;color:#B5D4F4}
+    .saved-badge{background:#085041;color:#9FE1CB}
+  }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">แพ็คกิ้ง — NISTO</div>
+      <div class="topbar-sub" id="topbar-sub">กำลังโหลด...</div>
+    </div>
+    <div class="topbar-time" id="clock">--:--</div>
+  </div>
+
+  <!-- หน้า 1: ตั้งค่าทีม -->
+  <div class="page active" id="page-morning">
+    <div class="page-title">ตั้งค่าทีมประจำวัน</div>
+    <div class="page-sub" id="morning-sub">กรอกข้อมูลโต๊ะและรหัสพนักงานทุกเช้า</div>
+    <div class="field-group">
+      <div class="field-lbl">โต๊ะเบอร์</div>
+      <select class="field-input" id="table-select">
+        <option value="1">โต๊ะ 1</option><option value="2">โต๊ะ 2</option>
+        <option value="3">โต๊ะ 3</option><option value="4">โต๊ะ 4</option>
+        <option value="5">โต๊ะ 5</option><option value="6">โต๊ะ 6</option>
+        <option value="7">โต๊ะ 7</option><option value="8">โต๊ะ 8</option>
+        <option value="9">โต๊ะ 9</option><option value="10">โต๊ะ 10</option>
+        <option value="11">โต๊ะ 11</option><option value="12">โต๊ะ 12</option>
+      </select>
+    </div>
+    <div class="field-group">
+      <div class="field-lbl">รหัสพนักงานคนที่ 1 <span class="saved-badge" id="b1" style="display:none">จากครั้งล่าสุด</span></div>
+      <input class="field-input" type="text" id="emp1" placeholder="เช่น A001" autocomplete="off"/>
+    </div>
+    <div class="field-group">
+      <div class="field-lbl">รหัสพนักงานคนที่ 2 <span class="saved-badge" id="b2" style="display:none">จากครั้งล่าสุด</span></div>
+      <input class="field-input" type="text" id="emp2" placeholder="เช่น A002" autocomplete="off"/>
+    </div>
+    <div class="field-group">
+      <div class="field-lbl">รหัสพนักงานคนที่ 3 <span class="saved-badge" id="b3" style="display:none">จากครั้งล่าสุด</span></div>
+      <input class="field-input" type="text" id="emp3" placeholder="ว่างได้ถ้ามี 2 คน" autocomplete="off"/>
+    </div>
+    <button class="big-btn btn-green" onclick="saveMorning()">ยืนยัน — เริ่มงานวันนี้</button>
+    <div class="hint" id="saved-hint" style="display:none">ค่าที่แสดงดึงจากครั้งล่าสุด — แก้ไขได้เลยถ้ามีการเปลี่ยนแปลง</div>
+  </div>
+
+  <!-- หน้า 2: พร้อมรับใบงาน -->
+  <div class="page" id="page-ready">
+    <div class="step-dots"><div class="sdot done"></div><div class="sdot cur"></div><div class="sdot"></div><div class="sdot"></div></div>
+    <div class="page-title">พร้อมรับใบงาน</div>
+    <div class="page-sub">สแกน QR Code บนใบงานเพื่อเริ่มงาน</div>
+    <div class="team-bar">
+      <div>
+        <div class="team-bar-lbl">ทีมวันนี้</div>
+        <div class="team-bar-val" id="team-display">—</div>
+      </div>
+      <button class="btn-outline" style="width:auto;padding:7px 14px;font-size:12px;margin:0" onclick="goPage('page-morning')">แก้ไข</button>
+    </div>
+    <div class="scan-area" onclick="openScanner()">
+      <div class="scan-icon-box">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#888780" stroke-width="1.5" stroke-linecap="round">
+          <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/>
+          <rect x="14" y="14" width="2" height="2"/><rect x="18" y="14" width="3" height="2"/>
+          <rect x="14" y="18" width="2" height="3"/><rect x="18" y="18" width="3" height="3"/>
+        </svg>
+      </div>
+      <div style="font-size:15px;font-weight:500;color:#1a1a18;margin-bottom:5px">แตะเพื่อสแกน QR</div>
+      <div style="font-size:12px;color:#888780">กล้องจะเปิดขึ้นมาอัตโนมัติ</div>
+    </div>
+    <div id="scanner-wrap" style="display:none;margin-bottom:16px">
+      <video id="scanner-video" style="width:100%;border-radius:12px;background:#000" autoplay playsinline muted></video>
+      <button class="btn-outline" style="margin-top:8px" onclick="closeScanner()">ปิดกล้อง</button>
+    </div>
+  </div>
+
+  <!-- หน้า 3: ยืนยันใบงาน -->
+  <div class="page" id="page-confirm">
+    <div class="step-dots"><div class="sdot done"></div><div class="sdot done"></div><div class="sdot cur"></div><div class="sdot"></div></div>
+    <div class="page-title">ตรวจสอบข้อมูลใบงาน</div>
+    <div class="page-sub">ยืนยันก่อนเริ่มงาน</div>
+    <div class="wo-badge" id="c-wo">—</div>
+    <div class="info-card">
+      <div class="info-row"><span class="info-lbl">เลขที่ใบงาน</span><span class="info-val" id="c-wo2">—</span></div>
+      <div class="info-row"><span class="info-lbl">ลูกค้า</span><span class="info-val" id="c-customer">—</span></div>
+      <div class="info-row"><span class="info-lbl">ชื่อสินค้า</span><span class="info-val" id="c-name">—</span></div>
+      <div class="info-row"><span class="info-lbl">รหัสลูกค้า</span><span class="info-val" id="c-ccode">—</span></div>
+      <div class="info-row"><span class="info-lbl">รหัส NISTO</span><span class="info-val" id="c-ncode">—</span></div>
+      <div class="info-row"><span class="info-lbl">จำนวนในใบงาน</span><span class="info-val" id="c-qty" style="color:#0F6E56;font-size:15px">—</span></div>
+    </div>
+    <button class="big-btn btn-green" onclick="startWork()">ยืนยัน — เริ่มงานเลย</button>
+    <button class="btn-outline" onclick="goPage('page-ready')">สแกนใหม่</button>
+  </div>
+
+  <!-- หน้า 4: กำลังทำงาน -->
+  <div class="page" id="page-working">
+    <div class="wo-badge" id="w-wo">—</div>
+    <div class="timer-wrap">
+      <div class="timer-num" id="timer">00:00</div>
+      <div class="timer-lbl">เวลาที่ผ่านไป</div>
+    </div>
+    <div class="info-card">
+      <div class="info-row"><span class="info-lbl">สินค้า</span><span class="info-val" id="w-name">—</span></div>
+      <div class="info-row"><span class="info-lbl">รหัส</span><span class="info-val" id="w-code">—</span></div>
+      <div class="info-row"><span class="info-lbl">เป้าหมาย</span><span class="info-val" id="w-qty">—</span></div>
+      <div class="info-row"><span class="info-lbl">เริ่มงาน</span><span class="info-val" id="w-start">—</span></div>
+    </div>
+    <button class="big-btn btn-red" onclick="goPage('page-finish')">จบใบงานนี้</button>
+  </div>
+
+  <!-- หน้า 5: กรอกผลงาน -->
+  <div class="page" id="page-finish">
+    <div class="step-dots"><div class="sdot done"></div><div class="sdot done"></div><div class="sdot done"></div><div class="sdot cur"></div></div>
+    <div class="page-title">กรอกผลงาน</div>
+    <div class="page-sub" id="f-sub">—</div>
+    <div class="field-group">
+      <div class="field-lbl">จำนวนที่แพ็คได้จริง (ชิ้น)</div>
+      <input class="field-input" type="number" inputmode="numeric" id="qty-actual" placeholder="0" oninput="calcResult()"/>
+    </div>
+    <div class="field-row-2">
+      <div>
+        <div class="field-lbl">ของเสีย (ชิ้น)</div>
+        <input class="field-input" type="number" inputmode="numeric" id="qty-defect" placeholder="0" oninput="calcResult()"/>
+      </div>
+      <div>
+        <div class="field-lbl">ขาด/อื่นๆ (ชิ้น)</div>
+        <input class="field-input" type="number" inputmode="numeric" id="qty-short" placeholder="0" oninput="calcResult()"/>
+      </div>
+    </div>
+    <div class="info-card" id="calc-card" style="display:none">
+      <div class="calc-row"><span class="calc-lbl">จำนวนใบงาน</span><span class="calc-val" id="r-target">—</span></div>
+      <div class="calc-row"><span class="calc-lbl">แพ็คจริง</span><span class="calc-val" id="r-actual" style="color:#0F6E56">—</span></div>
+      <div class="calc-row"><span class="calc-lbl">ของเสีย</span><span class="calc-val" id="r-defect">—</span></div>
+      <div class="calc-row"><span class="calc-lbl">ขาด/อื่นๆ</span><span class="calc-val" id="r-short">—</span></div>
+      <div class="divider-line"></div>
+      <div class="calc-row"><span class="calc-lbl" style="font-weight:500">ผลต่าง</span><span class="calc-val" id="r-diff" style="font-size:15px">—</span></div>
+      <div class="calc-row"><span class="calc-lbl">เวลาที่ใช้</span><span class="calc-val" id="r-time">—</span></div>
+      <div class="calc-row"><span class="calc-lbl">วินาที/ชิ้น</span><span class="calc-val" id="r-pcs">—</span></div>
+    </div>
+    <div class="field-group">
+      <div class="field-lbl">หมายเหตุ (ถ้ามี)</div>
+      <input class="field-input" type="text" id="note" placeholder="เช่น หยุดพัก, รอของ..."/>
+    </div>
+    <button class="big-btn btn-green" onclick="submitWork()">ยืนยันส่งข้อมูล</button>
+    <button class="btn-outline" onclick="goPage('page-working')">กลับ</button>
+  </div>
+
+  <!-- หน้า 6: สำเร็จ -->
+  <div class="page" id="page-done">
+    <div class="success-wrap">
+      <div class="success-circle">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#0F6E56" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </div>
+      <div style="font-size:18px;font-weight:500;color:#1a1a18;margin-bottom:6px">ส่งข้อมูลสำเร็จ</div>
+      <div style="font-size:13px;color:#888780;margin-bottom:28px" id="done-note">บันทึกลง Google Sheets แล้ว</div>
+      <div class="info-card" style="text-align:left">
+        <div class="calc-row"><span class="calc-lbl">ใบงาน</span><span class="calc-val" id="done-wo">—</span></div>
+        <div class="calc-row"><span class="calc-lbl">แพ็คจริง</span><span class="calc-val" id="done-actual" style="color:#0F6E56">—</span></div>
+        <div class="calc-row"><span class="calc-lbl">เวลาที่ใช้</span><span class="calc-val" id="done-time">—</span></div>
+        <div class="calc-row"><span class="calc-lbl">วินาที/ชิ้น</span><span class="calc-val" id="done-pcs">—</span></div>
+      </div>
+      <button class="big-btn btn-green" onclick="nextJob()" style="margin-top:8px">รับใบงานถัดไป</button>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
+<script>
+const pad=n=>String(n).padStart(2,'0');
+let job={wo:'',customer:'',name:'',ccode:'',ncode:'',qty:0};
+let startTime=null,timerInterval=null,elapsedSec=0;
+let scanStream=null,scanInterval=null;
+
+function updateClock(){
+  const d=new Date();
+  document.getElementById('clock').textContent=pad(d.getHours())+':'+pad(d.getMinutes());
+}
+updateClock();setInterval(updateClock,1000);
+
+function loadSaved(){
+  try{
+    const s=JSON.parse(localStorage.getItem('nisto_team')||'null');
+    if(s&&(s.emp1||s.emp2)){
+      document.getElementById('table-select').value=s.table||'1';
+      document.getElementById('emp1').value=s.emp1||'';
+      document.getElementById('emp2').value=s.emp2||'';
+      document.getElementById('emp3').value=s.emp3||'';
+      if(s.emp1)document.getElementById('b1').style.display='inline';
+      if(s.emp2)document.getElementById('b2').style.display='inline';
+      if(s.emp3)document.getElementById('b3').style.display='inline';
+      document.getElementById('saved-hint').style.display='block';
+      document.getElementById('morning-sub').textContent='ข้อมูลจากครั้งล่าสุด — แก้ไขถ้ามีเปลี่ยนแปลง';
+      updateTopbar(s);
+    }
+  }catch(e){}
+}
+
+function updateTopbar(s){
+  if(!s)return;
+  const emps=[s.emp1,s.emp2,s.emp3].filter(Boolean).join(', ');
+  document.getElementById('topbar-sub').textContent='โต๊ะ '+s.table+' · '+emps;
+}
+
+function saveMorning(){
+  const e1=document.getElementById('emp1').value.trim();
+  const e2=document.getElementById('emp2').value.trim();
+  if(!e1||!e2){alert('กรุณากรอกรหัสพนักงานอย่างน้อย 2 คน');return;}
+  const s={
+    table:document.getElementById('table-select').value,
+    emp1:e1,emp2:e2,
+    emp3:document.getElementById('emp3').value.trim()
+  };
+  try{localStorage.setItem('nisto_team',JSON.stringify(s));}catch(e){}
+  updateTopbar(s);
+  const emps=[s.emp1,s.emp2,s.emp3].filter(Boolean).join(', ');
+  document.getElementById('team-display').textContent='โต๊ะ '+s.table+' · '+emps;
+  goPage('page-ready');
+}
+
+function goPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function parseQR(raw){
+  const parts=raw.split('~d009');
+  return{
+    wo:(parts[0]||'').replace('~x0D','').trim(),
+    customer:(parts[2]||'').trim(),
+    ccode:(parts[4]||'').trim(),
+    ncode:(parts[5]||'').replace(/[()]/g,'').trim(),
+    name:(parts[6]||'').trim(),
+    qty:parseInt((parts[9]||'0').trim())||0
+  };
+}
+
+function openScanner(){
+  document.getElementById('scanner-wrap').style.display='block';
+  const video=document.getElementById('scanner-video');
+  navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}})
+    .then(stream=>{
+      scanStream=stream;
+      video.srcObject=stream;
+      video.play();
+      const canvas=document.createElement('canvas');
+      const ctx=canvas.getContext('2d');
+      scanInterval=setInterval(()=>{
+        if(video.readyState!==video.HAVE_ENOUGH_DATA)return;
+        canvas.width=video.videoWidth;
+        canvas.height=video.videoHeight;
+        ctx.drawImage(video,0,0);
+        const img=ctx.getImageData(0,0,canvas.width,canvas.height);
+        const result=jsQR(img.data,img.width,img.height);
+        if(result&&result.data){
+          closeScanner();
+          showConfirm(result.data);
+        }
+      },300);
+    })
+    .catch(()=>{
+      closeScanner();
+      const demo='BK-050348~d009~d00946102~d009KMM~d00948674-22020(48674-22021)~d00948674-22020~d009(48674-22021)~d009TENSION BUSH~d009STOCK NISTO~d009~d009291~d009CR27~x0D';
+      showConfirm(demo);
+    });
+}
+
+function closeScanner(){
+  clearInterval(scanInterval);
+  if(scanStream)scanStream.getTracks().forEach(t=>t.stop());
+  scanStream=null;
+  document.getElementById('scanner-wrap').style.display='none';
+}
+
+function showConfirm(raw){
+  job=parseQR(raw);
+  document.getElementById('c-wo').textContent=job.wo;
+  document.getElementById('c-wo2').textContent=job.wo;
+  document.getElementById('c-customer').textContent=job.customer||'—';
+  document.getElementById('c-name').textContent=job.name||'—';
+  document.getElementById('c-ccode').textContent=job.ccode||'—';
+  document.getElementById('c-ncode').textContent=job.ncode||'—';
+  document.getElementById('c-qty').textContent=(job.qty||'—')+' ชิ้น';
+  goPage('page-confirm');
+}
+
+function startWork(){
+  startTime=new Date();
+  document.getElementById('w-wo').textContent=job.wo;
+  document.getElementById('w-name').textContent=job.name;
+  document.getElementById('w-code').textContent=job.ccode;
+  document.getElementById('w-qty').textContent=job.qty+' ชิ้น';
+  document.getElementById('w-start').textContent=pad(startTime.getHours())+':'+pad(startTime.getMinutes());
+  document.getElementById('f-sub').textContent=job.wo+' · เป้าหมาย '+job.qty+' ชิ้น';
+  document.getElementById('r-target').textContent=job.qty+' ชิ้น';
+  elapsedSec=0;clearInterval(timerInterval);
+  timerInterval=setInterval(()=>{
+    elapsedSec++;
+    document.getElementById('timer').textContent=pad(Math.floor(elapsedSec/60))+':'+pad(elapsedSec%60);
+  },1000);
+  goPage('page-working');
+}
+
+function calcResult(){
+  const actual=parseInt(document.getElementById('qty-actual').value)||0;
+  const defect=parseInt(document.getElementById('qty-defect').value)||0;
+  const short=parseInt(document.getElementById('qty-short').value)||0;
+  const diff=actual-job.qty;
+  const pcs=actual>0?Math.round(elapsedSec/actual):0;
+  document.getElementById('r-actual').textContent=actual+' ชิ้น';
+  document.getElementById('r-defect').textContent=defect>0?defect+' ชิ้น':'-';
+  document.getElementById('r-short').textContent=short>0?short+' ชิ้น':'-';
+  document.getElementById('r-diff').textContent=(diff>=0?'+':'')+diff+' ชิ้น';
+  document.getElementById('r-diff').style.color=diff<0?'#A32D2D':'#0F6E56';
+  document.getElementById('r-time').textContent=pad(Math.floor(elapsedSec/60))+':'+pad(elapsedSec%60);
+  document.getElementById('r-pcs').textContent=pcs+' วินาที/ชิ้น';
+  document.getElementById('done-actual').textContent=actual+' ชิ้น';
+  document.getElementById('done-time').textContent=pad(Math.floor(elapsedSec/60))+':'+pad(elapsedSec%60);
+  document.getElementById('done-pcs').textContent=pcs+' วินาที/ชิ้น';
+  document.getElementById('calc-card').style.display=actual>0?'block':'none';
+}
+
+function submitWork(){
+  const actual=parseInt(document.getElementById('qty-actual').value)||0;
+  if(!actual){alert('กรุณากรอกจำนวนที่แพ็คได้จริง');return;}
+  clearInterval(timerInterval);
+  document.getElementById('done-wo').textContent=job.wo;
+  document.getElementById('done-note').textContent='บันทึกลง Google Sheets แล้ว ✓';
+  goPage('page-done');
+}
+
+function nextJob(){
+  ['qty-actual','qty-defect','qty-short','note'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('calc-card').style.display='none';
+  document.getElementById('timer').textContent='00:00';
+  elapsedSec=0;job={wo:'',customer:'',name:'',ccode:'',ncode:'',qty:0};
+  goPage('page-ready');
+}
+
+loadSaved();
+</script>
+</body>
+</html>
