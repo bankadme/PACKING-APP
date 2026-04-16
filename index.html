@@ -149,6 +149,7 @@
       </div>
       <button class="btn-outline" style="width:auto;padding:7px 14px;font-size:12px;margin:0" onclick="goPage('page-morning')">แก้ไข</button>
     </div>
+    <button class="btn-outline" onclick="openManual()" style="margin-bottom:12px">กรอกข้อมูลด้วยมือ (ไม่สแกน)</button>
     <div class="scan-area" onclick="openScanner()">
       <div class="scan-icon-box">
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#CC0000" stroke-width="1.5" stroke-linecap="round">
@@ -173,16 +174,47 @@
     <div class="page-title">ตรวจสอบข้อมูลใบงาน</div>
     <div class="page-sub">ยืนยันก่อนเริ่มงาน</div>
     <div class="wo-badge" id="c-wo">—</div>
-    <div class="info-card">
-      <div class="info-row"><span class="info-lbl">เลขที่ใบงาน</span><span class="info-val" id="c-wo2">—</span></div>
-      <div class="info-row"><span class="info-lbl">ลูกค้า</span><span class="info-val" id="c-customer">—</span></div>
-      <div class="info-row"><span class="info-lbl">ชื่อสินค้า</span><span class="info-val" id="c-name">—</span></div>
-      <div class="info-row"><span class="info-lbl">รหัสลูกค้า</span><span class="info-val" id="c-ccode">—</span></div>
-      <div class="info-row"><span class="info-lbl">รหัส NISTO</span><span class="info-val" id="c-ncode">—</span></div>
-      <div class="info-row"><span class="info-lbl">จำนวนในใบงาน</span><span class="info-val" id="c-qty" style="color:#CC0000;font-size:15px">—</span></div>
+    <div id="confirm-view">
+      <div class="info-card">
+        <div class="info-row"><span class="info-lbl">เลขที่ใบงาน</span><span class="info-val" id="c-wo2">—</span></div>
+        <div class="info-row"><span class="info-lbl">ลูกค้า</span><span class="info-val" id="c-customer">—</span></div>
+        <div class="info-row"><span class="info-lbl">ชื่อสินค้า</span><span class="info-val" id="c-name">—</span></div>
+        <div class="info-row"><span class="info-lbl">รหัสลูกค้า</span><span class="info-val" id="c-ccode">—</span></div>
+        <div class="info-row"><span class="info-lbl">รหัส NISTO</span><span class="info-val" id="c-ncode">—</span></div>
+        <div class="info-row"><span class="info-lbl">จำนวนในใบงาน</span><span class="info-val" id="c-qty" style="color:#CC0000;font-size:15px">—</span></div>
+      </div>
+      <button class="big-btn btn-green" onclick="startWork()">ยืนยัน — เริ่มงานเลย</button>
+      <button class="btn-outline" onclick="toggleEdit(true)">แก้ไขข้อมูลด้วยมือ</button>
+      <button class="btn-outline" onclick="goPage('page-ready')">สแกนใหม่</button>
     </div>
-    <button class="big-btn btn-green" onclick="startWork()">ยืนยัน — เริ่มงานเลย</button>
-    <button class="btn-outline" onclick="goPage('page-ready')">สแกนใหม่</button>
+    <div id="confirm-edit" style="display:none">
+      <div class="field-group">
+        <div class="field-lbl">เลขที่ใบงาน</div>
+        <input class="field-input" type="text" id="e-wo" placeholder="เช่น BK-050348"/>
+      </div>
+      <div class="field-group">
+        <div class="field-lbl">ลูกค้า</div>
+        <input class="field-input" type="text" id="e-customer" placeholder="เช่น KMM"/>
+      </div>
+      <div class="field-group">
+        <div class="field-lbl">ชื่อสินค้า</div>
+        <input class="field-input" type="text" id="e-name" placeholder="เช่น TENSION BUSH"/>
+      </div>
+      <div class="field-group">
+        <div class="field-lbl">รหัสลูกค้า</div>
+        <input class="field-input" type="text" id="e-ccode" placeholder="เช่น 48674-22020"/>
+      </div>
+      <div class="field-group">
+        <div class="field-lbl">รหัส NISTO</div>
+        <input class="field-input" type="text" id="e-ncode" placeholder="เช่น 48674-22021"/>
+      </div>
+      <div class="field-group">
+        <div class="field-lbl">จำนวนในใบงาน (ชิ้น)</div>
+        <input class="field-input" type="number" inputmode="numeric" id="e-qty" placeholder="0"/>
+      </div>
+      <button class="big-btn btn-green" onclick="saveEdit()">ยืนยันข้อมูล — เริ่มงานเลย</button>
+      <button class="btn-outline" onclick="toggleEdit(false)">กลับ</button>
+    </div>
   </div>
 
   <!-- หน้า 4: กำลังทำงาน -->
@@ -280,25 +312,21 @@ function sendToSheet(payload, onSuccess, onError){
   try{
     const encoded = encodeURIComponent(JSON.stringify(payload));
     const url = SCRIPT_URL + '?data=' + encoded;
-    const form = document.createElement('form');
-    form.method = 'GET';
-    form.action = url;
-    form.target = 'hidden-frame';
-    document.body.appendChild(form);
-    let frame = document.getElementById('hidden-frame');
-    if(!frame){
-      frame = document.createElement('iframe');
-      frame.name = 'hidden-frame';
-      frame.id = 'hidden-frame';
-      frame.style.display = 'none';
-      document.body.appendChild(frame);
-    }
-    form.submit();
-    document.body.removeChild(form);
-    setTimeout(()=>onSuccess({ok:true}), 1500);
-  }catch(err){
-    onError(err.toString());
-  }
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.onload = function(){
+      try{
+        const res = JSON.parse(xhr.responseText);
+        if(res.ok) onSuccess(res); else onError(res.error||'error');
+      }catch(e){ onSuccess({ok:true}); }
+    };
+    xhr.onerror = function(){
+      const img = new Image();
+      img.src = url + '&t=' + Date.now();
+      setTimeout(()=>onSuccess({ok:true}), 2000);
+    };
+    xhr.send();
+  }catch(err){ onError(err.toString()); }
 }
 
 function updateClock(){
@@ -465,13 +493,56 @@ function closeScanner(){
 
 function showConfirm(raw){
   job=parseQR(raw);
-  document.getElementById('c-wo').textContent=job.wo;
-  document.getElementById('c-wo2').textContent=job.wo;
+  updateConfirmView();
+  toggleEdit(false);
+  goPage('page-confirm');
+}
+
+function updateConfirmView(){
+  document.getElementById('c-wo').textContent=job.wo||'—';
+  document.getElementById('c-wo2').textContent=job.wo||'—';
   document.getElementById('c-customer').textContent=job.customer||'—';
   document.getElementById('c-name').textContent=job.name||'—';
   document.getElementById('c-ccode').textContent=job.ccode||'—';
   document.getElementById('c-ncode').textContent=job.ncode||'—';
   document.getElementById('c-qty').textContent=(job.qty||'—')+' ชิ้น';
+}
+
+function toggleEdit(show){
+  document.getElementById('confirm-view').style.display=show?'none':'block';
+  document.getElementById('confirm-edit').style.display=show?'block':'none';
+  if(show){
+    document.getElementById('e-wo').value=job.wo||'';
+    document.getElementById('e-customer').value=job.customer||'';
+    document.getElementById('e-name').value=job.name||'';
+    document.getElementById('e-ccode').value=job.ccode||'';
+    document.getElementById('e-ncode').value=job.ncode||'';
+    document.getElementById('e-qty').value=job.qty||'';
+  }
+}
+
+function saveEdit(){
+  const wo=document.getElementById('e-wo').value.trim();
+  const qty=parseInt(document.getElementById('e-qty').value)||0;
+  if(!wo){alert('กรุณากรอกเลขที่ใบงาน');return;}
+  if(!qty){alert('กรุณากรอกจำนวนในใบงาน');return;}
+  job={
+    wo:wo,
+    customer:document.getElementById('e-customer').value.trim(),
+    name:document.getElementById('e-name').value.trim(),
+    ccode:document.getElementById('e-ccode').value.trim(),
+    ncode:document.getElementById('e-ncode').value.trim(),
+    qty:qty
+  };
+  startWork();
+}
+
+function openManual(){
+  job={wo:'',customer:'',name:'',ccode:'',ncode:'',qty:0};
+  toggleEdit(true);
+  document.getElementById('c-wo').textContent='กรอกด้วยมือ';
+  document.getElementById('confirm-view').style.display='none';
+  document.getElementById('confirm-edit').style.display='block';
   goPage('page-confirm');
 }
 
