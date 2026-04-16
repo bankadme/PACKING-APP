@@ -319,13 +319,14 @@ function parseQR(raw){
   const sep = raw.includes('\t') ? '\t' : (raw.includes('~d009') ? '~d009' : '\t');
   const parts = raw.split(sep);
   const clean = s => (s||'').replace(/~x0D/g,'').replace(/\r/g,'').trim();
+  const qty = [9,10,8].map(i=>parseInt(clean(parts[i]))||0).find(v=>v>0) || 0;
   return{
-    wo:   clean(parts[0]),
-    customer: clean(parts[2]),
-    ccode:clean(parts[4]),
-    ncode:clean(parts[5]).replace(/[()]/g,''),
-    name: clean(parts[6]),
-    qty:  parseInt(clean(parts[9]))||0
+    wo:      clean(parts[0]),
+    customer:clean(parts[3]),
+    name:    clean(parts[7]),
+    ccode:   clean(parts[5]),
+    ncode:   clean(parts[6]).replace(/[()]/g,''),
+    qty:     qty
   };
 }
 
