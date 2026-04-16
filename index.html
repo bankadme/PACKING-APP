@@ -279,9 +279,18 @@ function fmtTime(d){
 function sendToSheet(payload, onSuccess, onError){
   const encoded = encodeURIComponent(JSON.stringify(payload));
   const url = SCRIPT_URL + '?data=' + encoded;
-  fetch(url, {method:'GET', mode:'no-cors'})
-    .then(()=>{ onSuccess({ok:true}); })
-    .catch(err=>onError(err.toString()));
+  console.log('Sending to:', url.substring(0,120));
+  fetch(url)
+    .then(r => r.json())
+    .then(res => {
+      console.log('Response:', JSON.stringify(res));
+      if(res.ok) onSuccess(res);
+      else onError(res.error||'server error');
+    })
+    .catch(err => {
+      console.error('Fetch error:', err.toString());
+      onError(err.toString());
+    });
 }
 
 function updateClock(){
