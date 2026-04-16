@@ -316,14 +316,16 @@ function goPage(id){
 }
 
 function parseQR(raw){
-  const parts=raw.split('~d009');
+  const sep = raw.includes('\t') ? '\t' : (raw.includes('~d009') ? '~d009' : '\t');
+  const parts = raw.split(sep);
+  const clean = s => (s||'').replace(/~x0D/g,'').replace(/\r/g,'').trim();
   return{
-    wo:(parts[0]||'').replace('~x0D','').trim(),
-    customer:(parts[2]||'').trim(),
-    ccode:(parts[4]||'').trim(),
-    ncode:(parts[5]||'').replace(/[()]/g,'').trim(),
-    name:(parts[6]||'').trim(),
-    qty:parseInt((parts[9]||'0').trim())||0
+    wo:   clean(parts[0]),
+    customer: clean(parts[2]),
+    ccode:clean(parts[4]),
+    ncode:clean(parts[5]).replace(/[()]/g,''),
+    name: clean(parts[6]),
+    qty:  parseInt(clean(parts[9]))||0
   };
 }
 
