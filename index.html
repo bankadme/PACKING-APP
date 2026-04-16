@@ -313,6 +313,65 @@ function saveMorning(){
 function goPage(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  try{localStorage.setItem('nisto_page',id);}catch(e){}
+}
+
+function saveState(){
+  try{
+    localStorage.setItem('nisto_job',JSON.stringify(job));
+    localStorage.setItem('nisto_start',startTime?startTime.getTime():'');
+  }catch(e){}
+}
+
+function clearState(){
+  try{['nisto_job','nisto_start','nisto_page'].forEach(k=>localStorage.removeItem(k));}catch(e){}
+}
+
+function restoreState(){
+  try{
+    const savedJob=JSON.parse(localStorage.getItem('nisto_job')||'null');
+    const savedPage=localStorage.getItem('nisto_page')||'';
+    const savedStart=localStorage.getItem('nisto_start');
+    if(!savedJob||!savedJob.wo)return;
+    if(!['page-working','page-confirm','page-finish'].includes(savedPage))return;
+    job=savedJob;
+    if((savedPage==='page-working'||savedPage==='page-finish')&&savedStart){
+      startTime=new Date(parseInt(savedStart));
+      document.getElementById('w-wo').textContent=job.wo;
+      document.getElementById('w-name').textContent=job.name;
+      document.getElementById('w-code').textContent=job.ccode;
+      document.getElementById('w-qty').textContent=job.qty+' ชิ้น';
+      document.getElementById('w-start').textContent=pad(startTime.getHours())+':'+pad(startTime.getMinutes());
+      document.getElementById('f-sub').textContent=job.wo+' · เป้าหมาย '+job.qty+' ชิ้น';
+      document.getElementById('r-target').textContent=job.qty+' ชิ้น';
+      document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+      document.getElementById(savedPage).classList.add('active');
+      clearInterval(timerInterval);
+      timerInterval=setInterval(()=>{
+        elapsedSec=Math.floor((Date.now()-startTime.getTime())/1000);
+        document.getElementById('timer').textContent=pad(Math.floor(elapsedSec/60))+':'+pad(elapsedSec%60);
+      },200);
+      const elapsed=Math.floor((Date.now()-startTime.getTime())/1000);
+      document.getElementById('timer').textContent=pad(Math.floor(elapsed/60))+':'+pad(elapsed%60);
+      const bar=document.createElement('div');
+      bar.id='resume-bar';
+      bar.style.cssText='background:#FAEEDA;color:#633806;font-size:12px;padding:8px 16px;text-align:center;border-bottom:0.5px solid #EF9F27';
+      bar.textContent='กลับมาต่องาน '+job.wo+' · เริ่ม '+pad(startTime.getHours())+':'+pad(startTime.getMinutes());
+      const topbar=document.querySelector('.topbar');
+      topbar.parentNode.insertBefore(bar,topbar.nextSibling);
+      setTimeout(()=>{const b=document.getElementById('resume-bar');if(b)b.remove();},5000);
+    } else if(savedPage==='page-confirm'){
+      document.getElementById('c-wo').textContent=job.wo;
+      document.getElementById('c-wo2').textContent=job.wo;
+      document.getElementById('c-customer').textContent=job.customer||'—';
+      document.getElementById('c-name').textContent=job.name||'—';
+      document.getElementById('c-ccode').textContent=job.ccode||'—';
+      document.getElementById('c-ncode').textContent=job.ncode||'—';
+      document.getElementById('c-qty').textContent=(job.qty||'—')+' ชิ้น';
+      document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+      document.getElementById('page-confirm').classList.add('active');
+    }
+  }catch(e){}
 }
 
 function parseQR(raw){
@@ -393,6 +452,7 @@ function startWork(){
     elapsedSec++;
     document.getElementById('timer').textContent=pad(Math.floor(elapsedSec/60))+':'+pad(elapsedSec%60);
   },1000);
+  saveState();
   goPage('page-working');
 }
 
@@ -420,6 +480,7 @@ function submitWork(){
   if(!actual){alert('กรุณากรอกจำนวนที่แพ็คได้จริง');return;}
   clearInterval(timerInterval);
   document.getElementById('done-wo').textContent=job.wo;
+  clearState();
   document.getElementById('done-note').textContent='บันทึกลง Google Sheets แล้ว ✓';
   goPage('page-done');
 }
@@ -433,6 +494,7 @@ function nextJob(){
 }
 
 loadSaved();
+restoreState();
 </script>
 </body>
 </html>
