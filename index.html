@@ -555,7 +555,8 @@ function startWork(){
   elapsedSec=0;clearInterval(timerInterval);
   timerInterval=setInterval(()=>{
     elapsedSec=Math.floor((Date.now()-startTime.getTime())/1000);
-    document.getElementById('timer').textContent=pad(Math.floor(elapsedSec/60))+':'+pad(elapsedSec%60);
+    const workSec=getWorkSec(startTime,new Date());
+    document.getElementById('timer').textContent=pad(Math.floor(workSec/60))+':'+pad(workSec%60);
   },1000);
   saveState();
   sendToSheet({
@@ -569,12 +570,41 @@ function startWork(){
   goPage('page-working');
 }
 
+function getBreakMinutes(startDate, endDate) {
+  const breaks = [
+    {start:'10:00', end:'10:10'},
+    {start:'12:20', end:'13:00'},
+    {start:'15:00', end:'15:10'},
+    {start:'17:00', end:'17:30'}
+  ];
+  let deduct = 0;
+  const day = startDate.toDateString();
+  breaks.forEach(b => {
+    const bs = new Date(day + ' ' + b.start);
+    const be = new Date(day + ' ' + b.end);
+    const overlap_start = Math.max(startDate.getTime(), bs.getTime());
+    const overlap_end = Math.min(endDate.getTime(), be.getTime());
+    if(overlap_end > overlap_start) {
+      deduct += (overlap_end - overlap_start) / 1000;
+    }
+  });
+  return deduct;
+}
+
+function getWorkSec(startDate, endDate) {
+  const total = (endDate - startDate) / 1000;
+  const deduct = getBreakMinutes(startDate, endDate);
+  return Math.max(0, Math.round(total - deduct));
+}
+
 function calcResult(){
   const actual=parseInt(document.getElementById('qty-actual').value)||0;
   const defect=parseInt(document.getElementById('qty-defect').value)||0;
   const short=parseInt(document.getElementById('qty-short').value)||0;
   const diff=actual-job.qty;
-  const pcs=actual>0?Math.round(elapsedSec/actual):0;
+  const now=new Date();
+  const workSec=startTime?getWorkSec(startTime,now):elapsedSec;
+  const pcs=actual>0?Math.round(workSec/actual):0;
   document.getElementById('r-actual').textContent=actual+' ชิ้น';
   document.getElementById('r-defect').textContent=defect>0?defect+' ชิ้น':'-';
   document.getElementById('r-short').textContent=short>0?short+' ชิ้น':'-';
@@ -608,7 +638,7 @@ function submitWork(){
     employees:emps,
     start_time:startTime?fmtTime(startTime):'',
     finish_time:fmtTime(finishTime),
-    elapsed_sec:Math.round((finishTime-startTime)/1000),
+    elapsed_sec:startTime?getWorkSec(startTime,finishTime):elapsedSec,
     note:document.getElementById('note').value.trim()
   },(res)=>{
     clearState();
